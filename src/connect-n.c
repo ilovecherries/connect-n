@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <readline/readline.h>
-
 #define BOARD_WIDTH 6
 #define BOARD_HEIGHT 7
 #define N 4
