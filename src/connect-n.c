@@ -15,18 +15,18 @@ typedef enum {
   None=0,
   Red,
   Yellow
-} Player;
+} Piece;
 
-typedef Player Row[BOARD_WIDTH];
-typedef Player Col[BOARD_HEIGHT];
+typedef Piece Row[BOARD_WIDTH];
+typedef Piece Col[BOARD_HEIGHT];
 typedef Row Board[BOARD_HEIGHT];
 typedef int bool;
 
 // this goes through all the columns in a row to check if someone
 // has won. returns player ID
-Player checkLine(Player line[], int length) {
-  for (int i = 0; i < length - N; ++i) {
-	Player start = line[i];
+Piece checkLine(Piece line[], int length) {
+  for (int i = 0; i < length - N + 1; ++i) {
+	Piece start = line[i];
 	if (start != None) {
 	  bool matching = true;
 	  for (int j = 0; j < N && matching; ++j) {
@@ -41,12 +41,12 @@ Player checkLine(Player line[], int length) {
 }
 
 // checks if a player has won on a certain row
-Player checkRow(Row row) {
+Piece checkRow(Row row) {
   return checkLine(row, BOARD_WIDTH);
 }
 
 // checks if a player has won on a certain column
-Player checkCol(Board board, int col) {
+Piece checkCol(Board board, int col) {
   Col colarr;
   for (int i = 0; i < BOARD_HEIGHT; ++i) {
 	colarr[i] = board[i][col];
@@ -56,7 +56,7 @@ Player checkCol(Board board, int col) {
 
 // checks if a player has won on a certain
 // left top right diagonal
-Player checkLeftToRightDiags(Board board) {
+Piece checkLeftToRightDiags(Board board) {
   for (int i = 0; i < BOARD_WIDTH; ++i) {
 	for (int j = 0; j < BOARD_HEIGHT; ++j) {
 	  // checks if it will be outside of bounds before iterating
@@ -65,7 +65,7 @@ Player checkLeftToRightDiags(Board board) {
 		  (j + N - 1) > BOARD_HEIGHT)
 		continue;
 	  // check through the array to see if there is a matching player
-	  Player start = board[j][i];
+	  Piece start = board[j][i];
 	  if (start) {
 		bool matching = true;
 		for (int k = 0; k < N && matching; ++k) {
@@ -82,7 +82,7 @@ Player checkLeftToRightDiags(Board board) {
 
 // checks if a player has won on a certain
 // left top right diagonal
-Player checkRightToLeftDiags(Board board) {
+Piece checkRightToLeftDiags(Board board) {
   for (int i = 0; i < BOARD_WIDTH; ++i) {
 	for (int j = 0; j < BOARD_HEIGHT; ++j) {
 	  // checks if it will be outside of bounds before iterating
@@ -91,7 +91,7 @@ Player checkRightToLeftDiags(Board board) {
 		  (j + N - 1) > BOARD_HEIGHT)
 		continue;
 	  // check through the array to see if there is a matching player
-	  Player start = board[j][BOARD_WIDTH - 1 - i];
+	  Piece start = board[j][BOARD_WIDTH - 1 - i];
 	  if (start) {
 		bool matching = true;
 		for (int k = 0; k < N && matching; ++k) {
@@ -124,11 +124,31 @@ void displayBoard(Board board) {
   }
 }
 
-void makeMove(Row board[BOARD_HEIGHT], int col, Player player) {
+void makeMove(Row board[BOARD_HEIGHT], int col, Piece player) {
   int i;
   for (i = BOARD_HEIGHT - 1; board[i][col]; --i);
   if (i == -1) exit(-1);
   board[i][col] = player;
+}
+
+Piece checkWin(Board board) {
+  Piece p;
+  for (int i = 0; i < BOARD_HEIGHT; ++i) {
+	p = checkRow(board[i]);
+	if (p) return p;
+  }
+  for (int i = 0; i < BOARD_WIDTH; ++i) {
+	p = checkCol(board, i);
+	if (p) return p;
+  }
+  
+  p = checkLeftToRightDiags(board);
+  if (p) return p;
+  
+  p = checkRightToLeftDiags(board);
+  if (p) return p;
+
+  return 0;
 }
 
 int main(void) {
@@ -142,14 +162,12 @@ int main(void) {
 	makeMove(board, col, player+1);
 	displayBoard(board);
 	// check if anyone has won
-	for (int i = 0; i < BOARD_HEIGHT; ++i) {
-	  if (checkRow(board[i])) exit(0);
+	Piece winner = checkWin(board);
+	
+	if (winner) {
+	  printf("%d IS THE WINNER\n", winner);
+	  exit(0);
 	}
-	for (int i = 0; i < BOARD_WIDTH; ++i) {
-	  if (checkCol(board, i)) exit(0);
-	}
-	if (checkLeftToRightDiags(board)) exit(0);
-	if (checkRightToLeftDiags(board)) exit(0);
 	
 	player = !player;
   }
