@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <readline/readline.h>
+
 #define BOARD_WIDTH 6
 #define BOARD_HEIGHT 7
 #define N 4
@@ -105,10 +107,10 @@ Player checkRightToLeftDiags(Board board) {
 }
 
 void displayBoard(Board board) {
-  for (int i = 0; i < BOARD_WIDTH; ++i) {
-	for (int j = 0; j < BOARD_HEIGHT; ++j) {
-	  if (board[j][i]) {
-		if (board[j][i] == Red)
+  for (int i = 0; i < BOARD_HEIGHT; ++i) {
+	for (int j = 0; j < BOARD_WIDTH; ++j) {
+	  if (board[i][j]) {
+		if (board[i][j] == Red)
 		  printf("\033[31m");
 		else
 		  printf("\033[33m");
@@ -122,20 +124,35 @@ void displayBoard(Board board) {
   }
 }
 
-void makeMove(Board *board, int col, Player player) {
+void makeMove(Row board[BOARD_HEIGHT], int col, Player player) {
   int i;
-  for (i = BOARD_HEIGHT - 1; !board[i][col] && i >= 0; --i) ;
+  for (i = BOARD_HEIGHT - 1; board[i][col]; --i);
   if (i == -1) exit(-1);
-  printf("%d", i);
-  board[i][col] = &player;
+  board[i][col] = player;
 }
 
-int main(int argc, char *argv[]) {
+int main(void) {
   Board board = {0};
-  
-  makeMove(&board, 2, Red);
-  printf("%d", board[6][2]);
+
   displayBoard(board);
+  int player = 0;
+  while (true) {
+	int col;
+	scanf("%d", &col);
+	makeMove(board, col, player+1);
+	displayBoard(board);
+	// check if anyone has won
+	for (int i = 0; i < BOARD_HEIGHT; ++i) {
+	  if (checkRow(board[i])) exit(0);
+	}
+	for (int i = 0; i < BOARD_WIDTH; ++i) {
+	  if (checkCol(board, i)) exit(0);
+	}
+	if (checkLeftToRightDiags(board)) exit(0);
+	if (checkRightToLeftDiags(board)) exit(0);
+	
+	player = !player;
+  }
   
   return 0;
 }
